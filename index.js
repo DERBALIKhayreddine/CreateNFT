@@ -1,5 +1,5 @@
 // Import required Hedera SDK classes
-const { Client, PrivateKey, AccountCreateTransaction, Hbar, AccountBalanceQuery, TokenCreateTransaction } = require("@hashgraph/sdk");
+const { Client, PrivateKey, AccountCreateTransaction, Hbar, AccountBalanceQuery, TokenCreateTransaction,TokenAssociateTransaction } = require("@hashgraph/sdk");
 require('dotenv').config();
 
 // Asynchronous function to set up the environment and create a new account
@@ -120,7 +120,21 @@ async function environmentSetup() {
     //Log the serial number
     console.log("Created NFT " + tokenId + " with serial number: " + mintRx.serials);
 
+    //Create the associate transaction and sign with Account key 
+    const associateAccountTx = await new TokenAssociateTransaction()
+        .setAccountId(newAccountId)
+        .setTokenIds([tokenId])
+        .freezeWith(client)
+        .sign(newAccountPrivateKey);
 
+    //Submit the transaction to a Hedera network
+    const associateAccountTxSubmit = await associateAccountTx.execute(client);
+
+    //Get the transaction receipt
+    const associateAccountRx = await associateAccountTxSubmit.getReceipt(client);
+
+    //Confirm the transaction was successful
+    console.log(`NFT association with Alice's account: ${associateAccountRx}\n`);
 
 
 }
